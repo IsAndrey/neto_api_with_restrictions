@@ -1,0 +1,5 @@
+django = 3.1.14
+
+djangorestframework
+psycopg2
+django-filter
