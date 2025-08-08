@@ -15,14 +15,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
+from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
+from advertisements.views import AdvertisementViewSet
+from .schema import schema
 
 router = DefaultRouter()
 # TODO: подключите `AdvertisementViewSet`
+router.register('advert', AdvertisementViewSet, basename='advert')
 
 
 urlpatterns = [
+    path('', schema),
+    path(
+        'redoc/',
+        TemplateView.as_view(template_name='redoc.html'),
+        name='redoc'
+    ),
     path('api/', include(router.urls)),
     path('admin/', admin.site.urls),
 ]

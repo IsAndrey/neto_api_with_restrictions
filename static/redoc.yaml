@@ -1,0 +1,368 @@
+openapi: 3.0.2
+info: 
+  title: 'Netology API with restrictions'
+  version: ''
+  description: |
+    запросы к API начинаются с `/api/v1/`
+    # Описание
+    Проект **Neto_api_restrictions** реализует API сайта с объявлениями с ограничениями для пользователей.
+  license:
+    name: MIT
+    url: 'https://opensource.org/license/mit/'
+servers:
+  - url: /api/v1
+
+tags:
+  - name: ADVERTISEMENT
+    description: Добавление, удаление, изменение, вывод объявлений, добавление объявлений в избранное
+
+paths:
+  /advert:
+    get:
+      security: []
+      tags:
+        - ADVERTISEMENT
+      operationId: get_adverts_list
+      summary: Получить список объявлений
+      description: |
+        Получение списка продуктовобъявлений
+        с возможностью фильтрации по
+        статусу и дате создания.
+        Объявления со статусом DRAFT просматривают
+        владельцы или админ.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: 'поиск по статусу объявления'
+          schema:
+            type: string
+        - name: date_after
+          in: query
+          required: false
+          description: 'поиск дате объявления (больше или равно)'
+          schema:
+            type: string
+        - name: date_before
+          in: query
+          required: false
+          description: 'поиск дате объявления (меньше или равно)'
+          schema:
+            type: string
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdvertRead'
+          description: 'Удачное выполнение запроса'
+
+    post:
+      security: 
+      - token:
+        - write:admin
+      tags:
+        - ADVERTISEMENT
+      operationId: create_advert
+      summary: Добавить объявление
+      description: |
+        Добавление объявлений.
+        Только для авторизованных пользователей.
+        Не более 20 объявлений со статусом OPEN.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Advert'
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvertRead'
+          description: 'Объявление добавлено'
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+          description: 'Ошибка валидации'
+  
+  /advert/favorite:
+    get:
+      security: []
+      tags:
+        - ADVERTISEMENT
+      operationId: get_favorite_adverts
+      summary: Получить список избранных объявлений
+      description: |
+        Получение списка избранных объявлений.
+        Только для авторизованных пользователей.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: 'поиск по статусу объявления'
+          schema:
+            type: string
+        - name: date_after
+          in: query
+          required: false
+          description: 'поиск дате объявления (больше или равно)'
+          schema:
+            type: string
+        - name: date_before
+          in: query
+          required: false
+          description: 'поиск дате объявления (меньше или равно)'
+          schema:
+            type: string
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdvertRead'
+          description: 'Удачное выполнение запроса'
+
+  /advert/{id}:
+    get:
+      security: []
+      tags:
+        - ADVERTISEMENT
+      operationId: get_advert
+      summary: Получить объявление
+      description: |
+        Получение информации по объявлению.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'ID объявление'
+          schema:
+            type: integer
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvertRead'
+          description: 'Удачное выполнение запроса'
+        404:
+          description: 'Объявление не найдено'
+    patch:
+      security: []
+      tags:
+        - ADVERTISEMENT
+      operationId: part_update_product
+      summary: Обновить Объявление
+      description: |
+        Обновление Обявления.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'ID обновления'
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdvertUpdate'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvertRead'
+          description: 'Удачное выполнение запроса'
+        404:
+          description: 'объявление не найден'
+    delete:
+      security: []
+      tags:
+        - ADVERTISEMENT
+      operationId: delete_advert
+      summary: Удалить объявление
+      description: |
+        Удаление обьявления.
+        Только для авторизированных пользователей.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'ID объявления'
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Удачное выполнение запроса'
+        404:
+          description: 'Объявление не найдено'
+
+  /advert/{id}/favorite:
+    post:
+      security: []
+      tags:
+        - ADVERTISEMENT
+      operationId: add_advуrt_to_favorite_list
+      summary: Добавить объявление в список избранного
+      description: |
+        Добавление объявления в список избранного.
+        Только для авторизованных пользователей.
+        Нельзя добавлять свои объявления.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'ID обновления'
+          schema:
+            type: integer
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Favorite'
+          description: 'Удачное выполнение запроса'
+        404:
+          description: 'объявление не найдено'
+    delete:
+      security: []
+      tags:
+        - ADVERTISEMENT
+      operationId: delete_advert_drom_favorite_list
+      summary: Удалить объявление из списка избранного
+      description: |
+        Удаление обьявления.
+        Только для авторизированных пользователей.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'ID объявления'
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Удачное выполнение запроса'
+        404:
+          description: 'Объявление не найдено'
+
+components:
+  schemas:
+  
+    UserRead:
+      title: Пользователь
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          title: Идентификатор пользователя
+        username:
+          type: string
+          example: 'admin'
+          title: Наименование пользователя
+        first_name:
+          type: string
+          example: 'Иван Иванович'
+        last_name:
+          type: string
+          example: 'Иванов'
+
+    AdvertRead:
+      title: Объявление
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          title: ID объявления
+        title:
+          type: string
+          example: 'Шкаф ИКЕА'
+          title: Заголовок объявления
+        description:
+          type: string
+          example: 'Срочно продам, торг уместен'
+          title: Тело объявления
+        creator:
+          $ref: '#/components/schemas/UserRead'
+        status:
+          type: string
+          example: 'OPEN'
+          title: Статус объявления
+        created_at:
+          type: date
+          example: '2025-07-30T22:20:03.091987Z'
+          title: Дата создания
+
+    Advert:
+      title: Создание объявления
+      type: object
+      properties:
+        title:
+          type: string
+          example: 'Самые вкусные помидоры'
+          title: Описание продукта
+        description:
+          type: string
+          example: 'Самые вкусные помидоры'
+          title: Описание продукта
+        status:
+          type: string
+          example: 'OPEN'
+          title: Статус объявления
+      required:
+        - title
+        - description
+
+    AdvertUpdate:
+      title: Создание объявления
+      type: object
+      properties:
+        title:
+          type: string
+          example: 'Самые вкусные помидоры'
+          title: Описание продукта
+        description:
+          type: string
+          example: 'Самые вкусные помидоры'
+          title: Описание продукта
+        status:
+          type: string
+          example: 'OPEN'
+          title: Статус объявления
+
+    Favorite:
+      title: Информация о добавлении объявления в список избранного
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          title: ID записи
+        advert:
+          type: integer
+          example: 1
+          title: ID объявления
+        user:
+          type: integer
+          example: 1
+          title: ID пользователя
+
+
+    ValidationError:
+      title: Ошибка валидации
+      type: object
+      properties:
+        field_name:
+          type: array
+          items:
+            type: string
